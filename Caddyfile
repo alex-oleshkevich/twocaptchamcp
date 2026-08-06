@@ -1,0 +1,8 @@
+:{$CADDY_HTTP_PORT:8080} {
+	basic_auth {
+		{$TWOCAP_BASIC_AUTH_USER} {$TWOCAP_BASIC_AUTH_HASH}
+	}
+	reverse_proxy notarobot:8080 {
+		header_up Authorization "Bearer {$TWOCAPTCHAMCP_TOKEN}"
+	}
+}
