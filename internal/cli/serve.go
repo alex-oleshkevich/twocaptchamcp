@@ -2,10 +2,8 @@ package cli
 
 import (
 	"context"
-	"crypto/subtle"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/alex-oleshkevich/twocaptchamcp/internal/config"
 	"github.com/alex-oleshkevich/twocaptchamcp/internal/mcp"
@@ -30,33 +28,10 @@ func (a *app) serveCommand() *urfave.Command {
 			mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 			mux.Handle("/mcp", server.Handler())
 
-			var handler http.Handler = mux
-			if cfg.Token != "" {
-				handler = bearerToken(cfg.Token, mux)
-			}
-
-			fmt.Fprintf(a.stderr, "twocap mcp listening on %s\n", cfg.Address)
-			return http.ListenAndServe(cfg.Address, handler)
+			fmt.Fprintf(a.stderr, "twocap mcp listening on %s (unauthenticated)\n", cfg.Address)
+			return http.ListenAndServe(cfg.Address, mux)
 		},
 	}
-}
-
-// bearerToken guards the /mcp path with a constant-time comparison against token. Health checks
-// stay open so container orchestration doesn't need credentials. Defense in depth even when a
-// reverse proxy (Caddy) also authenticates.
-func bearerToken(token string, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !strings.HasPrefix(r.URL.Path, "/mcp") {
-			next.ServeHTTP(w, r)
-			return
-		}
-		provided := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if subtle.ConstantTimeCompare([]byte(provided), []byte(token)) != 1 {
-			http.Error(w, "valid bearer token required", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
 }
 
 func (a *app) stdioCommand() *urfave.Command {

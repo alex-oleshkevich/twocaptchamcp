@@ -41,6 +41,9 @@ install: package
 docker-build image=env_var_or_default("TWOCAP_IMAGE", "twocap:local"):
     docker build --tag {{image}} .
 
+install-skill:
+    npx skills@latest add . --global --skill twocap --yes
+
 compose-config:
     docker compose --file {{compose_file}} config --quiet
 
@@ -52,9 +55,6 @@ compose-down:
 
 compose-logs:
     docker compose --file {{compose_file}} logs --follow
-
-caddy-hash-password password:
-    docker run --rm caddy:2-alpine caddy hash-password --plaintext '{{password}}'
 
 uncloud-deploy:
     uc deploy --file {{compose_file}} --yes

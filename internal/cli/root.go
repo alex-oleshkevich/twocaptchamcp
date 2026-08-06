@@ -63,16 +63,18 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer, version s
 			&urfave.BoolFlag{Name: "verbose", Aliases: []string{"v"}, Usage: "log each attempt and error to stderr", Destination: &a.verbose},
 		},
 		Before: func(_ context.Context, cmd *urfave.Command) (context.Context, error) {
-			if apiKey == "" {
+			if apiKey == "" && cmd.Args().First() != "doctor" {
 				return nil, usageError("--api-key or TWOCAPTCHA_API_KEY is required")
 			}
-			a.client = captcha.NewClient(apiKey)
-			a.client.BaseURL = baseURL
-			a.solver = captcha.NewSolver(a.client)
-			if testSleep != nil {
-				a.solver.Sleep = testSleep
-			} else if a.verbose {
-				a.solver.Sleep = verboseSleep(stderr)
+			if apiKey != "" {
+				a.client = captcha.NewClient(apiKey)
+				a.client.BaseURL = baseURL
+				a.solver = captcha.NewSolver(a.client)
+				if testSleep != nil {
+					a.solver.Sleep = testSleep
+				} else if a.verbose {
+					a.solver.Sleep = verboseSleep(stderr)
+				}
 			}
 			return nil, nil
 		},
@@ -84,6 +86,7 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer, version s
 			a.reportCommand(),
 			a.balanceCommand(),
 			a.typesCommand(),
+			a.doctorCommand(&apiKey, &baseURL),
 		},
 	}
 

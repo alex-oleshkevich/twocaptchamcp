@@ -61,9 +61,6 @@ just compose-up
 just uncloud-deploy   # uc deploy --file compose.yaml --yes
 ```
 
-`compose.yaml` runs `twocap mcp` behind a Caddy proxy that basic-auths external callers and
-injects the bearer token twocap itself checks. Generate the password hash with:
-
-```sh
-just caddy-hash-password 'your-password'
-```
+`compose.yaml` publishes the MCP port via uncloud's built-in ingress (`TWOCAP_DOMAIN:8080/https`),
+which handles TLS termination automatically. twocap itself still enforces `TWOCAPTCHAMCP_TOKEN`
+as a bearer token on `/mcp` — callers must send `Authorization: Bearer <token>`.
