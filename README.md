@@ -23,7 +23,7 @@ same commands:
 curl -fLO '<release-asset-url>'
 ```
 
-Windows users can download the matching `.zip` archive, extract it, and add its directory to `PATH`.
+Windows users can download the matching archive, extract it, and add its directory to `PATH`.
 Set `TWOCAPTCHA_API_KEY` as described below.
 
 ## Configuration
