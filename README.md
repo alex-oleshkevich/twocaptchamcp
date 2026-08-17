@@ -6,48 +6,25 @@ captchas.
 
 ## Installation
 
-Download the latest `twocap` release from [GitHub Releases](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest). On Linux or macOS, use `curl`:
+Download the archive for your operating system and architecture from the [latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest).
+
+On Linux or macOS, download the `.tar.gz` archive, then extract and install it:
 
 ```sh
-repo=alex-oleshkevich/twocaptchamcp
-
-case "$(uname -s):$(uname -m)" in
-  Linux:x86_64) asset_suffix='_linux_amd64.tar.gz' ;;
-  Linux:aarch64|Linux:arm64) asset_suffix='_linux_arm64.tar.gz' ;;
-  Darwin:x86_64) asset_suffix='_darwin_amd64.tar.gz' ;;
-  Darwin:arm64) asset_suffix='_darwin_arm64.tar.gz' ;;
-  *) printf 'Unsupported platform: %s\n' "$(uname -s):$(uname -m)" >&2; exit 1 ;;
-esac
-
-tmpdir=$(mktemp -d)
-trap 'rm -rf "$tmpdir"' EXIT
-curl -fsSL "https://api.github.com/repos/$repo/releases/latest" -o "$tmpdir/release.json"
-download_url=$(awk -v suffix="$asset_suffix" '
-  /"browser_download_url":/ && index($0, suffix) {
-    sub(/^.*"browser_download_url": "/, "")
-    sub(/".*$/, "")
-    print
-    exit
-  }
-' "$tmpdir/release.json")
-if [ -z "$download_url" ]; then
-  printf 'No release archive found for this platform.\n' >&2
-  exit 1
-fi
-curl -fsSL "$download_url" -o "$tmpdir/release.tar.gz"
-tar -xzf "$tmpdir/release.tar.gz" -C "$tmpdir"
+tar -xzf twocaptchamcp_*.tar.gz
 mkdir -p "$HOME/.local/bin"
-install -m 755 "$tmpdir/twocap" "$HOME/.local/bin/twocap"
+install -m 755 twocap "$HOME/.local/bin/twocap"
 ```
 
-This downloads the archive for your platform from the latest release. It requires `curl`, `awk`,
-`tar`, and `install`, which are standard on Linux and macOS. Add `$HOME/.local/bin` to your `PATH`
-if needed, then set `TWOCAPTCHA_API_KEY` as described below.
+If you prefer `curl`, copy the asset URL from the release page and download it before running the
+same commands:
 
-To install manually, download the archive for your operating system and architecture from the
-[latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest), extract it,
-and put the `twocap` binary in a directory on your `PATH`. Windows users can download the matching
-`.zip` archive and add its extracted directory to `PATH`.
+```sh
+curl -fLO '<release-asset-url>'
+```
+
+Windows users can download the matching `.zip` archive, extract it, and add its directory to `PATH`.
+Set `TWOCAPTCHA_API_KEY` as described below.
 
 ## Configuration
 
