@@ -2,8 +2,12 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/alex-oleshkevich/twocaptchamcp/internal/config"
 	"github.com/alex-oleshkevich/twocaptchamcp/internal/mcp"
@@ -28,12 +32,42 @@ func (a *app) serveCommand() *urfave.Command {
 			mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 			mux.Handle("/mcp", server.Handler())
 
-			if _, err := fmt.Fprintf(a.stderr, "twocap mcp listening on %s (unauthenticated)\n", cfg.Address); err != nil {
-				return err
+			listener, err := net.Listen("tcp", cfg.Address)
+			if err != nil {
+				return fmt.Errorf("listen on %s: %w", cfg.Address, err)
 			}
-			return http.ListenAndServe(cfg.Address, mux)
+			return serveHTTP(ctx, listener, mux, a.stderr)
 		},
 	}
+}
+
+func serveHTTP(ctx context.Context, listener net.Listener, handler http.Handler, stderr io.Writer) error {
+	server := &http.Server{
+		Handler:           handler,
+		ReadHeaderTimeout: 10 * time.Second,
+	}
+	if _, err := fmt.Fprintf(stderr, "twocap mcp listening on %s\n", listener.Addr()); err != nil {
+		_ = listener.Close()
+		return err
+	}
+
+	done := make(chan struct{})
+	defer close(done)
+	go func() {
+		select {
+		case <-ctx.Done():
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			_ = server.Shutdown(shutdownCtx)
+		case <-done:
+		}
+	}()
+
+	err := server.Serve(listener)
+	if errors.Is(err, http.ErrServerClosed) && ctx.Err() != nil {
+		return nil
+	}
+	return err
 }
 
 func (a *app) stdioCommand() *urfave.Command {

@@ -54,16 +54,24 @@ Exit codes: `0` solved, `1` usage/config error, `2` fatal 2captcha error (bad ke
 
 ```sh
 twocap mcp     # streamable HTTP on $TWOCAPTCHAMCP_ADDRESS, /mcp + /healthz
-twocap stdio   # stdio transport, for local Claude Code use
+twocap stdio   # stdio transport for local MCP clients
 ```
+
+Local stdio is the recommended setup for Claude Code, Claude Desktop, and Cursor because the
+client starts `twocap` directly and no MCP HTTP port is exposed.
 
 To register it with Claude Code:
 
 ```sh
-claude mcp add twocaptcha -- twocap stdio
-# or, against a running HTTP server:
-claude mcp add --transport http twocaptcha http://127.0.0.1:8080/mcp
+claude mcp add --scope user --transport stdio \
+  --env "TWOCAPTCHA_API_KEY=$TWOCAPTCHA_API_KEY" \
+  twocap -- twocap stdio
 ```
+
+For Claude Desktop, copy [`examples/mcp-stdio.json`](examples/mcp-stdio.json) into
+`claude_desktop_config.json`. For Cursor, copy it into `.cursor/mcp.json` in a project or
+`~/.cursor/mcp.json` for a user-wide setup. Replace the placeholder API key and restart the client;
+the config starts the installed `twocap` binary with the stdio transport.
 
 Tools: `captcha_solve`, `captcha_create_task`, `captcha_get_result`, `captcha_list_types`,
 `captcha_balance`, `captcha_report`.
@@ -80,6 +88,10 @@ The `compose.yaml` file publishes the MCP port through uncloud's built-in ingres
 (`TWOCAP_DOMAIN:8080/https`), which handles TLS termination. twocap still requires
 `TWOCAPTCHAMCP_TOKEN` as a bearer token on `/mcp`. Callers must send
 `Authorization: Bearer <token>`.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
 
 ## Development
 

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "twocap": {
+      "command": "twocap",
+      "args": ["stdio"],
+      "env": {
+        "TWOCAPTCHA_API_KEY": "replace-with-your-2captcha-key"
+      }
+    }
+  }
+}
