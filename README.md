@@ -6,25 +6,18 @@ captchas.
 
 ## Installation
 
-Download the archive for your operating system and architecture from the [latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest).
-
-On Linux or macOS, download the `.tar.gz` archive, then extract and install it:
+Install the latest release on Linux or macOS with:
 
 ```sh
-tar -xzf twocaptchamcp_*.tar.gz
-mkdir -p "$HOME/.local/bin"
-install -m 755 twocap "$HOME/.local/bin/twocap"
+curl -fsSL https://raw.githubusercontent.com/alex-oleshkevich/twocaptchamcp/master/install.sh | bash
 ```
 
-If you prefer `curl`, copy the asset URL from the release page and download it before running the
-same commands:
+The installer detects your platform and architecture, verifies the release checksum, installs
+`twocap` to `$HOME/.local/bin`, and configures shell completion. Start a new shell after
+installation, then set `TWOCAPTCHA_API_KEY` as described below.
 
-```sh
-curl -fLO '<release-asset-url>'
-```
+For manual installation, download the matching archive from the [latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest), extract it, and put `twocap` on your `PATH`.
 
-Windows users can download the matching archive, extract it, and add its directory to `PATH`.
-Set `TWOCAPTCHA_API_KEY` as described below.
 
 ## Configuration
 

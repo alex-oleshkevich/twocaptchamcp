@@ -117,10 +117,36 @@ func TestSolveUnknownTypeExitsUsage(t *testing.T) {
 }
 
 func TestSolveMissingAPIKeyExitsUsage(t *testing.T) {
+	t.Setenv("TWOCAPTCHA_API_KEY", "")
 	var outBuf, errBuf bytes.Buffer
 	code := Run(context.Background(), []string{"balance"}, &outBuf, &errBuf, "test")
 	if code != ExitUsage {
 		t.Errorf("exit code = %d, want ExitUsage(%d); stderr=%s", code, ExitUsage, errBuf.String())
+	}
+}
+
+func TestShellCompletionsDoNotRequireAPIKey(t *testing.T) {
+	t.Setenv("TWOCAPTCHA_API_KEY", "")
+	for _, shell := range []string{"bash", "zsh", "fish", "pwsh"} {
+		t.Run(shell, func(t *testing.T) {
+			var outBuf, errBuf bytes.Buffer
+			code := Run(context.Background(), []string{"completion", shell}, &outBuf, &errBuf, "test")
+			if code != ExitOK {
+				t.Fatalf("exit code = %d, want ExitOK(%d); stderr=%s", code, ExitOK, errBuf.String())
+			}
+			if outBuf.Len() == 0 {
+				t.Fatal("completion output is empty")
+			}
+		})
+	}
+}
+
+func TestDynamicShellCompletionDoesNotRequireAPIKey(t *testing.T) {
+	t.Setenv("TWOCAPTCHA_API_KEY", "")
+	var outBuf, errBuf bytes.Buffer
+	code := Run(context.Background(), []string{"--generate-shell-completion"}, &outBuf, &errBuf, "test")
+	if code != ExitOK {
+		t.Fatalf("exit code = %d, want ExitOK(%d); stderr=%s", code, ExitOK, errBuf.String())
 	}
 }
 

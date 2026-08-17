@@ -48,11 +48,12 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer, version s
 	var timeoutSeconds int
 
 	root := &urfave.Command{
-		Name:      "twocap",
-		Usage:     "Solve captchas via 2captcha.com, by hand or as an MCP server",
-		Version:   version,
-		Writer:    stdout,
-		ErrWriter: stderr,
+		Name:                  "twocap",
+		Usage:                 "Solve captchas via 2captcha.com, by hand or as an MCP server",
+		Version:               version,
+		Writer:                stdout,
+		ErrWriter:             stderr,
+		EnableShellCompletion: true,
 		Flags: []urfave.Flag{
 			&urfave.StringFlag{Name: "api-key", Sources: urfave.EnvVars("TWOCAPTCHA_API_KEY"), Usage: "2captcha API key", Destination: &apiKey},
 			&urfave.StringFlag{Name: "base-url", Sources: urfave.EnvVars("TWOCAPTCHA_BASE_URL"), Value: captcha.DefaultBaseURL, Usage: "2captcha API base URL", Destination: &baseURL},
@@ -63,7 +64,14 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer, version s
 			&urfave.BoolFlag{Name: "verbose", Aliases: []string{"v"}, Usage: "log each attempt and error to stderr", Destination: &a.verbose},
 		},
 		Before: func(_ context.Context, cmd *urfave.Command) (context.Context, error) {
-			if apiKey == "" && cmd.Args().First() != "doctor" {
+			completionRequested := cmd.Args().First() == "completion"
+			for _, arg := range args {
+				if arg == "--generate-shell-completion" {
+					completionRequested = true
+					break
+				}
+			}
+			if apiKey == "" && cmd.Args().First() != "doctor" && !completionRequested {
 				return nil, usageError("--api-key or TWOCAPTCHA_API_KEY is required")
 			}
 			if apiKey != "" {
