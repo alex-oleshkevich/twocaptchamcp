@@ -104,7 +104,7 @@ func (e *usageErr) Error() string { return e.msg }
 func usageError(msg string) error { return &usageErr{msg: msg} }
 
 func (a *app) reportError(err error) int {
-	fmt.Fprintln(a.stderr, "error:", err)
+	_, _ = fmt.Fprintln(a.stderr, "error:", err)
 	var ue *usageErr
 	switch {
 	case errors.As(err, &ue):
@@ -122,7 +122,7 @@ func (a *app) reportError(err error) int {
 // traces exactly the retry/poll timeline a production failure would have taken.
 func verboseSleep(stderr io.Writer) func(context.Context, time.Duration) error {
 	return func(ctx context.Context, d time.Duration) error {
-		fmt.Fprintf(stderr, "  waiting %s...\n", d.Round(time.Second))
+		_, _ = fmt.Fprintf(stderr, "  waiting %s...\n", d.Round(time.Second))
 		timer := time.NewTimer(d)
 		defer timer.Stop()
 		select {

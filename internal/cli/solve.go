@@ -91,7 +91,9 @@ func (a *app) runSolve(ctx context.Context, taskType string, fields map[string]a
 	task["type"] = taskType
 
 	if a.verbose {
-		fmt.Fprintf(a.stderr, "solving %s (retries=%d timeout=%ds)\n", taskType, retries, timeoutSeconds)
+		if _, err := fmt.Fprintf(a.stderr, "solving %s (retries=%d timeout=%ds)\n", taskType, retries, timeoutSeconds); err != nil {
+			return err
+		}
 	}
 
 	result, err := a.solver.Solve(ctx, task, captcha.Options{Retries: retries, Timeout: time.Duration(timeoutSeconds) * time.Second})
@@ -101,8 +103,8 @@ func (a *app) runSolve(ctx context.Context, taskType string, fields map[string]a
 	token := captcha.Token(entry, result.Solution)
 
 	if a.quiet {
-		fmt.Fprintln(a.stdout, token)
-		return nil
+		_, err = fmt.Fprintln(a.stdout, token)
+		return err
 	}
 	if a.jsonOutput {
 		return a.printJSON(map[string]any{
@@ -110,12 +112,8 @@ func (a *app) runSolve(ctx context.Context, taskType string, fields map[string]a
 			"cost": result.Cost, "attempts": result.Attempts, "elapsed_ms": result.ElapsedMS,
 		})
 	}
-	fmt.Fprintf(a.stdout, "token:    %s\n", token)
-	fmt.Fprintf(a.stdout, "task_id:  %d\n", result.TaskID)
-	fmt.Fprintf(a.stdout, "cost:     %s\n", result.Cost)
-	fmt.Fprintf(a.stdout, "attempts: %d\n", result.Attempts)
-	fmt.Fprintf(a.stdout, "elapsed:  %dms\n", result.ElapsedMS)
-	return nil
+	_, err = fmt.Fprintf(a.stdout, "token:    %s\ntask_id:  %d\ncost:     %s\nattempts: %d\nelapsed:  %dms\n", token, result.TaskID, result.Cost, result.Attempts, result.ElapsedMS)
+	return err
 }
 
 // proxyFields parses --proxy scheme://[user:pass@]host:port into 2captcha's proxy* fields and
@@ -421,7 +419,7 @@ func loadImage(ctx context.Context, source string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("fetch %s: %w", source, err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		data, err = io.ReadAll(io.LimitReader(resp.Body, maxImageBytes+1))
 		if err != nil {
 			return "", err

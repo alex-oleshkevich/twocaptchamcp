@@ -25,11 +25,11 @@ func newFakeServer(t *testing.T) *fakeServer {
 	fs := &fakeServer{mux: http.NewServeMux()}
 	fs.mux.HandleFunc("/createTask", func(w http.ResponseWriter, r *http.Request) {
 		n := fs.createCalls.Add(1)
-		json.NewEncoder(w).Encode(fs.createReply(n))
+		_ = json.NewEncoder(w).Encode(fs.createReply(n))
 	})
 	fs.mux.HandleFunc("/getTaskResult", func(w http.ResponseWriter, r *http.Request) {
 		n := fs.resultCalls.Add(1)
-		json.NewEncoder(w).Encode(fs.resultReply(n))
+		_ = json.NewEncoder(w).Encode(fs.resultReply(n))
 	})
 	return fs
 }

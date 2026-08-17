@@ -34,7 +34,9 @@ func (a *app) doctorCommand(apiKey, baseURL *string) *urfave.Command {
 					mark = "FAIL"
 					failed++
 				}
-				fmt.Fprintf(a.stdout, "[%s] %-20s %s\n", mark, c.Name, c.Detail)
+				if _, err := fmt.Fprintf(a.stdout, "[%s] %-20s %s\n", mark, c.Name, c.Detail); err != nil {
+					return err
+				}
 			}
 			if failed > 0 {
 				return fmt.Errorf("%d check(s) failed", failed)

@@ -28,7 +28,9 @@ func (a *app) serveCommand() *urfave.Command {
 			mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 			mux.Handle("/mcp", server.Handler())
 
-			fmt.Fprintf(a.stderr, "twocap mcp listening on %s (unauthenticated)\n", cfg.Address)
+			if _, err := fmt.Fprintf(a.stderr, "twocap mcp listening on %s (unauthenticated)\n", cfg.Address); err != nil {
+				return err
+			}
 			return http.ListenAndServe(cfg.Address, mux)
 		},
 	}

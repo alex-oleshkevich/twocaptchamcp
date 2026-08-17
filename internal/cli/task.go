@@ -43,8 +43,8 @@ func (a *app) taskCreateCommand() *urfave.Command {
 			if a.jsonOutput {
 				return a.printJSON(map[string]any{"task_id": taskID})
 			}
-			fmt.Fprintln(a.stdout, taskID)
-			return nil
+			_, err = fmt.Fprintln(a.stdout, taskID)
+			return err
 		},
 	}
 }
@@ -81,12 +81,12 @@ func (a *app) taskResultCommand() *urfave.Command {
 					if a.jsonOutput {
 						return a.printJSON(map[string]any{"status": res.Status, "solution": res.Solution, "token": token, "cost": res.Cost})
 					}
-					fmt.Fprintf(a.stdout, "status: %s\n", res.Status)
 					if res.Status == "ready" {
-						fmt.Fprintf(a.stdout, "token:  %s\n", token)
-						fmt.Fprintf(a.stdout, "cost:   %s\n", res.Cost)
+						_, err = fmt.Fprintf(a.stdout, "status: %s\ntoken:  %s\ncost:   %s\n", res.Status, token, res.Cost)
+					} else {
+						_, err = fmt.Fprintf(a.stdout, "status: %s\n", res.Status)
 					}
-					return nil
+					return err
 				}
 				select {
 				case <-ctx.Done():
@@ -122,8 +122,8 @@ func (a *app) reportCommand() *urfave.Command {
 			if err := a.client.Report(ctx, taskID, good); err != nil {
 				return err
 			}
-			fmt.Fprintln(a.stdout, "ok")
-			return nil
+			_, err = fmt.Fprintln(a.stdout, "ok")
+			return err
 		},
 	}
 }

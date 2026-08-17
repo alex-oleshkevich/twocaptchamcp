@@ -20,8 +20,8 @@ func (a *app) balanceCommand() *urfave.Command {
 			if a.jsonOutput {
 				return a.printJSON(map[string]any{"balance": balance})
 			}
-			fmt.Fprintf(a.stdout, "%.4f\n", balance)
-			return nil
+			_, err = fmt.Fprintf(a.stdout, "%.4f\n", balance)
+			return err
 		},
 	}
 }
@@ -41,10 +41,16 @@ func (a *app) typesCommand() *urfave.Command {
 				return a.printJSON(entries)
 			}
 			for _, t := range entries {
-				fmt.Fprintf(a.stdout, "%-36s %-10s %s\n", t.Name, t.Family, t.Description)
-				fmt.Fprintf(a.stdout, "  required: %v\n", t.Required)
+				if _, err := fmt.Fprintf(a.stdout, "%-36s %-10s %s\n", t.Name, t.Family, t.Description); err != nil {
+					return err
+				}
+				if _, err := fmt.Fprintf(a.stdout, "  required: %v\n", t.Required); err != nil {
+					return err
+				}
 				if len(t.Optional) > 0 {
-					fmt.Fprintf(a.stdout, "  optional: %v\n", t.Optional)
+					if _, err := fmt.Fprintf(a.stdout, "  optional: %v\n", t.Optional); err != nil {
+						return err
+					}
 				}
 			}
 			return nil

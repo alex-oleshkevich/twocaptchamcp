@@ -4,6 +4,47 @@ An MCP server (and CLI) that solves captchas via [2captcha.com](https://2captcha
 reCAPTCHA v2/v3, Cloudflare Turnstile, hCaptcha, FunCaptcha, GeeTest, Amazon WAF, and image/text
 captchas.
 
+## Installation
+
+The latest `twocap` release is available on [GitHub Releases](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest). Install it with the [GitHub CLI](https://cli.github.com/):
+
+```sh
+repo=alex-oleshkevich/twocaptchamcp
+
+case "$(uname -s):$(uname -m)" in
+  Linux:x86_64) asset='twocaptchamcp_*_linux_amd64.tar.gz' ;;
+  Linux:aarch64|Linux:arm64) asset='twocaptchamcp_*_linux_arm64.tar.gz' ;;
+  Darwin:x86_64) asset='twocaptchamcp_*_darwin_amd64.tar.gz' ;;
+  Darwin:arm64) asset='twocaptchamcp_*_darwin_arm64.tar.gz' ;;
+  *) printf 'Unsupported platform: %s\n' "$(uname -s):$(uname -m)" >&2; exit 1 ;;
+esac
+
+tmpdir=$(mktemp -d)
+trap 'rm -rf "$tmpdir"' EXIT
+gh release download --repo "$repo" --pattern "$asset" --dir "$tmpdir"
+tar -xzf "$tmpdir"/*.tar.gz -C "$tmpdir"
+mkdir -p "$HOME/.local/bin"
+install -m 755 "$tmpdir/twocap" "$HOME/.local/bin/twocap"
+```
+
+The command downloads the matching archive from the latest release. Add `$HOME/.local/bin` to
+your `PATH` if it is not already there, then set the required `TWOCAPTCHA_API_KEY` described below.
+Windows users can download the matching `.zip` archive from the [latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest).
+
+## Development
+
+Run the local checks and test suite with [just](https://just.systems/):
+
+```sh
+just check
+just test
+```
+
+Create a release from a clean `main` branch with `just release patch`, `just release minor`, or
+`just release major`. The recipe builds a changelog from commits since the previous release,
+creates an annotated semantic-version tag, and asks for confirmation before committing and
+atomically pushing the branch and tag to `origin`.
+
 ## Configuration
 
 | Env | Default | Notes |

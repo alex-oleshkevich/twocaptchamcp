@@ -18,11 +18,11 @@ func newTestClient(t *testing.T, createReply, resultReply map[string]any) *sdk.C
 	fake := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/createTask":
-			json.NewEncoder(w).Encode(createReply)
+			_ = json.NewEncoder(w).Encode(createReply)
 		case "/getTaskResult":
-			json.NewEncoder(w).Encode(resultReply)
+			_ = json.NewEncoder(w).Encode(resultReply)
 		case "/getBalance":
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "balance": 5.5})
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "balance": 5.5})
 		default:
 			http.NotFound(w, r)
 		}
@@ -42,7 +42,7 @@ func newTestClient(t *testing.T, createReply, resultReply map[string]any) *sdk.C
 	if err != nil {
 		t.Fatalf("client Connect() error = %v", err)
 	}
-	t.Cleanup(func() { session.Close() })
+	t.Cleanup(func() { _ = session.Close() })
 	return session
 }
 

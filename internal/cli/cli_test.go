@@ -20,11 +20,11 @@ func newFakeAPI(t *testing.T, createTaskID int64, solution map[string]any) *http
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/createTask":
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": createTaskID})
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": createTaskID})
 		case "/getTaskResult":
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "status": "ready", "solution": solution, "cost": "0.001"})
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "status": "ready", "solution": solution, "cost": "0.001"})
 		case "/getBalance":
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "balance": 3.21})
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "balance": 3.21})
 		default:
 			http.NotFound(w, r)
 		}
@@ -66,11 +66,11 @@ func TestSolveWithProxyFlipsTaskType(t *testing.T) {
 	var gotBody map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/createTask" {
-			json.NewDecoder(r.Body).Decode(&gotBody)
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": 1})
+			_ = json.NewDecoder(r.Body).Decode(&gotBody)
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": 1})
 			return
 		}
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "status": "ready", "solution": map[string]any{"token": "t"}})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "status": "ready", "solution": map[string]any{"token": "t"}})
 	}))
 	defer srv.Close()
 
@@ -126,7 +126,7 @@ func TestSolveMissingAPIKeyExitsUsage(t *testing.T) {
 
 func TestSolveFatalAPIErrorExitsFatal(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_ZERO_BALANCE"})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_ZERO_BALANCE"})
 	}))
 	defer srv.Close()
 
@@ -140,9 +140,9 @@ func TestSolveExhaustedRetriesExitsExhausted(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/createTask":
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": 1})
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": 1})
 		case "/getTaskResult":
-			json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_CAPTCHA_UNSOLVABLE"})
+			_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_CAPTCHA_UNSOLVABLE"})
 		}
 	}))
 	defer srv.Close()

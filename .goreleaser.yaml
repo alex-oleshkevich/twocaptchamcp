@@ -1,0 +1,7 @@
+version: 2
+
+builds:
+  - main: ./cmd/twocap
+    binary: twocap
+    env:
+      - CGO_ENABLED=0

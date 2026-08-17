@@ -157,7 +157,7 @@ func (c *Client) call(ctx context.Context, method string, body, out any) error {
 	if err != nil {
 		return fmt.Errorf("2captcha: %s: %w", method, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	data, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {

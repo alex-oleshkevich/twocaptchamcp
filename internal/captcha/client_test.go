@@ -12,8 +12,8 @@ import (
 func TestClientCreateTaskSendsClientKey(t *testing.T) {
 	var gotBody map[string]any
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewDecoder(r.Body).Decode(&gotBody)
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": 7})
+		_ = json.NewDecoder(r.Body).Decode(&gotBody)
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "taskId": 7})
 	}))
 	defer srv.Close()
 
@@ -32,7 +32,7 @@ func TestClientCreateTaskSendsClientKey(t *testing.T) {
 
 func TestClientCreateTaskReturnsAPIError(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_ZERO_BALANCE", "errorDescription": "no funds"})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_ZERO_BALANCE", "errorDescription": "no funds"})
 	}))
 	defer srv.Close()
 
@@ -52,7 +52,7 @@ func TestClientCreateTaskReturnsAPIError(t *testing.T) {
 
 func TestClientErrorNeverLeaksAPIKey(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_KEY_DOES_NOT_EXIST", "errorDescription": "bad key"})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 1, "errorCode": "ERROR_KEY_DOES_NOT_EXIST", "errorDescription": "bad key"})
 	}))
 	defer srv.Close()
 
@@ -69,7 +69,7 @@ func TestClientErrorNeverLeaksAPIKey(t *testing.T) {
 
 func TestClientGetTaskResultProcessing(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "status": "processing"})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "status": "processing"})
 	}))
 	defer srv.Close()
 
@@ -85,7 +85,7 @@ func TestClientGetTaskResultProcessing(t *testing.T) {
 
 func TestClientGetBalance(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "balance": 12.34})
+		_ = json.NewEncoder(w).Encode(map[string]any{"errorId": 0, "balance": 12.34})
 	}))
 	defer srv.Close()
 
