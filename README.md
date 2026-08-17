@@ -1,49 +1,53 @@
 # twocaptchamcp
 
-An MCP server (and CLI) that solves captchas via [2captcha.com](https://2captcha.com/2captcha-api):
+An MCP server and CLI for solving captchas through [2captcha.com](https://2captcha.com/2captcha-api):
 reCAPTCHA v2/v3, Cloudflare Turnstile, hCaptcha, FunCaptcha, GeeTest, Amazon WAF, and image/text
 captchas.
 
 ## Installation
 
-The latest `twocap` release is available on [GitHub Releases](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest). Install it with the [GitHub CLI](https://cli.github.com/):
+Download the latest `twocap` release from [GitHub Releases](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest). On Linux or macOS, use `curl`:
 
 ```sh
 repo=alex-oleshkevich/twocaptchamcp
 
 case "$(uname -s):$(uname -m)" in
-  Linux:x86_64) asset='twocaptchamcp_*_linux_amd64.tar.gz' ;;
-  Linux:aarch64|Linux:arm64) asset='twocaptchamcp_*_linux_arm64.tar.gz' ;;
-  Darwin:x86_64) asset='twocaptchamcp_*_darwin_amd64.tar.gz' ;;
-  Darwin:arm64) asset='twocaptchamcp_*_darwin_arm64.tar.gz' ;;
+  Linux:x86_64) asset_suffix='_linux_amd64.tar.gz' ;;
+  Linux:aarch64|Linux:arm64) asset_suffix='_linux_arm64.tar.gz' ;;
+  Darwin:x86_64) asset_suffix='_darwin_amd64.tar.gz' ;;
+  Darwin:arm64) asset_suffix='_darwin_arm64.tar.gz' ;;
   *) printf 'Unsupported platform: %s\n' "$(uname -s):$(uname -m)" >&2; exit 1 ;;
 esac
 
 tmpdir=$(mktemp -d)
 trap 'rm -rf "$tmpdir"' EXIT
-gh release download --repo "$repo" --pattern "$asset" --dir "$tmpdir"
-tar -xzf "$tmpdir"/*.tar.gz -C "$tmpdir"
+curl -fsSL "https://api.github.com/repos/$repo/releases/latest" -o "$tmpdir/release.json"
+download_url=$(awk -v suffix="$asset_suffix" '
+  /"browser_download_url":/ && index($0, suffix) {
+    sub(/^.*"browser_download_url": "/, "")
+    sub(/".*$/, "")
+    print
+    exit
+  }
+' "$tmpdir/release.json")
+if [ -z "$download_url" ]; then
+  printf 'No release archive found for this platform.\n' >&2
+  exit 1
+fi
+curl -fsSL "$download_url" -o "$tmpdir/release.tar.gz"
+tar -xzf "$tmpdir/release.tar.gz" -C "$tmpdir"
 mkdir -p "$HOME/.local/bin"
 install -m 755 "$tmpdir/twocap" "$HOME/.local/bin/twocap"
 ```
 
-The command downloads the matching archive from the latest release. Add `$HOME/.local/bin` to
-your `PATH` if it is not already there, then set the required `TWOCAPTCHA_API_KEY` described below.
-Windows users can download the matching `.zip` archive from the [latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest).
+This downloads the archive for your platform from the latest release. It requires `curl`, `awk`,
+`tar`, and `install`, which are standard on Linux and macOS. Add `$HOME/.local/bin` to your `PATH`
+if needed, then set `TWOCAPTCHA_API_KEY` as described below.
 
-## Development
-
-Run the local checks and test suite with [just](https://just.systems/):
-
-```sh
-just check
-just test
-```
-
-Create a release from a clean `main` branch with `just release patch`, `just release minor`, or
-`just release major`. The recipe builds a changelog from commits since the previous release,
-creates an annotated semantic-version tag, and asks for confirmation before committing and
-atomically pushing the branch and tag to `origin`.
+To install manually, download the archive for your operating system and architecture from the
+[latest release](https://github.com/alex-oleshkevich/twocaptchamcp/releases/latest), extract it,
+and put the `twocap` binary in a directory on your `PATH`. Windows users can download the matching
+`.zip` archive and add its extracted directory to `PATH`.
 
 ## Configuration
 
@@ -83,7 +87,7 @@ twocap mcp     # streamable HTTP on $TWOCAPTCHAMCP_ADDRESS, /mcp + /healthz
 twocap stdio   # stdio transport, for local Claude Code use
 ```
 
-Register with Claude Code:
+To register it with Claude Code:
 
 ```sh
 claude mcp add twocaptcha -- twocap stdio
@@ -102,6 +106,21 @@ just compose-up
 just uncloud-deploy   # uc deploy --file compose.yaml --yes
 ```
 
-`compose.yaml` publishes the MCP port via uncloud's built-in ingress (`TWOCAP_DOMAIN:8080/https`),
-which handles TLS termination automatically. twocap itself still enforces `TWOCAPTCHAMCP_TOKEN`
-as a bearer token on `/mcp` — callers must send `Authorization: Bearer <token>`.
+The `compose.yaml` file publishes the MCP port through uncloud's built-in ingress
+(`TWOCAP_DOMAIN:8080/https`), which handles TLS termination. twocap still requires
+`TWOCAPTCHAMCP_TOKEN` as a bearer token on `/mcp`. Callers must send
+`Authorization: Bearer <token>`.
+
+## Development
+
+Use [just](https://just.systems/) to run the local checks and test suite:
+
+```sh
+just check
+just test
+```
+
+To create a release, start from a clean `main` branch and run `just release patch`,
+`just release minor`, or `just release major`. The recipe builds a changelog from commits since
+the previous release, creates an annotated semantic-version tag, and asks for confirmation before
+it commits and atomically pushes the branch and tag to `origin`.
