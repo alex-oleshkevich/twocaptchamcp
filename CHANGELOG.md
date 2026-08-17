@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.0.2 - 2026-08-17
+
+- feat: add release installer and shell completions (735d16f)
+- ci: avoid deprecated just setup action (794c648)
+- docs: correct release archive guidance (4615713)
+
 ## v0.0.1 - 2026-08-17
 
 - docs: simplify installation instructions (38552b0)
